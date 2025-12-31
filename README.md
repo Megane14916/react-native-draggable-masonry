@@ -1,50 +1,133 @@
-# Welcome to your Expo app 👋
+# react-native-draggable-masonry
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A draggable masonry grid component for React Native.
 
-## Get started
+![Demo](example/assets/gif/demo.gif)
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- Masonry layout with variable height items
+- Drag and drop reordering
+- Customizable appearance and behavior
+- Auto-scroll when dragging near edges
+- Enter/exit animations support
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Installation
 
 ```bash
-npm run reset-project
+npm install react-native-draggable-masonry
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Peer Dependencies
 
-## Learn more
+```bash
+npm install react-native-gesture-handler react-native-reanimated
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Follow the setup instructions for:
+- [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/docs/installation)
+- [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation/)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Quick Start
 
-## Join the community
+```tsx
+import { DraggableMasonryList } from 'react-native-draggable-masonry';
+import { View, Text } from 'react-native';
 
-Join our community of developers creating universal apps.
+const data = [
+  { id: '1', height: 100, title: 'Item 1' },
+  { id: '2', height: 150, title: 'Item 2' },
+  { id: '3', height: 120, title: 'Item 3' },
+];
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+export default function App() {
+  return (
+    <DraggableMasonryList
+      data={data}
+      renderItem={({ item }) => (
+        <View style={{ height: item.height, backgroundColor: '#f0f0f0' }}>
+          <Text>{item.title}</Text>
+        </View>
+      )}
+      columns={2}
+      onDragEnd={({ data }) => console.log('New order:', data)}
+    />
+  );
+}
+```
+
+## Props
+
+### Base
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `data` | `T[]` | required | Array of items |
+| `renderItem` | `(info) => ReactNode` | required | Render function |
+| `keyExtractor` | `(item) => string` | `item.id` | Key extraction function |
+| `sortEnabled` | `boolean` | `true` | Enable drag sorting |
+
+### Layout
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `columns` | `number` | `2` | Number of columns |
+| `rowGap` | `number` | `10` | Gap between rows (px) |
+| `columnGap` | `number` | `10` | Gap between columns (px) |
+
+### Drag
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `dragActivationDelay` | `number` | `300` | Long press duration (ms) |
+| `activationAnimationDuration` | `number` | `150` | Drag start animation (ms) |
+| `dropAnimationDuration` | `number` | `200` | Drop animation (ms) |
+| `overDrag` | `string` | `'both'` | Drag restriction: `'both'`, `'horizontal'`, `'vertical'`, `'none'` |
+
+### Active Item
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `activeItemScale` | `number` | `1.03` | Scale of dragged item |
+| `activeItemOpacity` | `number` | `1` | Opacity of dragged item |
+| `activeItemShadowOpacity` | `number` | `0.2` | Shadow opacity |
+| `inactiveItemOpacity` | `number` | `1` | Opacity of other items |
+| `inactiveItemScale` | `number` | `1` | Scale of other items |
+
+### Auto Scroll
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `autoScrollEnabled` | `boolean` | `true` | Enable auto-scroll |
+| `autoScrollActivationOffset` | `number` | `150` | Edge threshold (px) |
+| `autoScrollSpeed` | `number` | `8` | Scroll speed |
+
+### Animations
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `itemEntering` | `EntryAnimation` | `undefined` | Enter animation |
+| `itemExiting` | `ExitAnimation` | `undefined` | Exit animation |
+
+### Callbacks
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onDragStart` | `(params) => void` | Called when drag starts |
+| `onDragEnd` | `(params) => void` | Called when drag ends |
+| `onOrderChange` | `(params) => void` | Called when order changes |
+
+## Item Type
+
+Items must have `id` and `height` properties:
+
+```ts
+interface MasonryItem {
+  id: string;
+  height: number;
+}
+```
+
+## License
+
+MIT

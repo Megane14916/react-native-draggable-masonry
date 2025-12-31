@@ -1,0 +1,24 @@
+# Development files
+.expo/
+.vscode/
+node_modules/
+__tests__/
+
+# Example app
+example/
+
+# Config files
+babel.config.js
+eslint.config.js
+jest.config.js
+jest.setup.js
+tsconfig.json
+expo-env.d.ts
+
+# Git
+.git/
+.gitignore
+
+# Misc
+*.log
+.DS_Store
