@@ -1,8 +1,9 @@
 import NoteCard from '@/components/NoteCard';
 import { MEMOS } from '@/constants/memos';
 import React from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { DraggableMasonryList } from 'react-native-draggable-masonry';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const renderItem = React.useCallback(({ item }: { item: any }) => (

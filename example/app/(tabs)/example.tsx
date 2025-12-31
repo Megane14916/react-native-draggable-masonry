@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import {
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Switch,
@@ -10,6 +9,7 @@ import {
 } from 'react-native';
 import { DragEndParams, DraggableMasonryList, DragStartParams, MasonryItem, OrderChangeParams } from 'react-native-draggable-masonry';
 import { FadeIn, FadeOut, SlideInLeft, SlideOutRight, ZoomIn, ZoomOut } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Sample data with various heights and colors
 const generateSampleData = (count: number): MasonryItem[] => {
