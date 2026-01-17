@@ -99,8 +99,27 @@ export default function App() {
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `autoScrollEnabled` | `boolean` | `true` | Enable auto-scroll |
-| `autoScrollActivationOffset` | `number` | `150` | Edge threshold (px) |
-| `autoScrollSpeed` | `number` | `8` | Scroll speed |
+| `autoScrollActivationOffset` | `number \| [number, number]` | `150` | Edge threshold (px) |
+| `autoScrollSpeed` | `number` | `8` | Scroll speed (deprecated) |
+| `autoScrollMaxSpeed` | `number` | `50` | Maximum scroll speed |
+| `autoScrollMinSpeed` | `number` | `2` | Minimum scroll speed |
+| `autoScrollAcceleration` | `number` | `2.5` | Acceleration curve exponent |
+| `autoScrollTargetDuration` | `number` | `0.5` | Target duration to reach edge (seconds) |
+
+### Virtualization
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `virtualizationEnabled` | `boolean` | `true` | Enable virtualization for large lists |
+| `overscanCount` | `number` | `1` | Screen heights to render outside visible area |
+| `dragOverscanCount` | `number` | `3` | Screen heights to render during drag |
+
+### Drop Indicator
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `showDropIndicator` | `boolean` | `true` | Show drop indicator during drag |
+| `dropIndicatorStyle` | `StyleProp<ViewStyle>` | `undefined` | Custom style for drop indicator |
 
 ### Animations
 
@@ -116,6 +135,12 @@ export default function App() {
 | `onDragStart` | `(params) => void` | Called when drag starts |
 | `onDragEnd` | `(params) => void` | Called when drag ends |
 | `onOrderChange` | `(params) => void` | Called when order changes |
+
+### Style
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `contentContainerStyle` | `StyleProp<ViewStyle>` | `undefined` | Style for scroll view content container |
 
 ## Item Type
 

@@ -77,9 +77,41 @@ describe('types.ts - Props and Types', () => {
             expect(DEFAULT_PROPS.autoScrollSpeed).toBe(8);
         });
 
-        it('全16個のデフォルト値が定義されている', () => {
+        it('virtualizationEnabled のデフォルト値が true', () => {
+            expect(DEFAULT_PROPS.virtualizationEnabled).toBe(true);
+        });
+
+        it('overscanCount のデフォルト値が 1', () => {
+            expect(DEFAULT_PROPS.overscanCount).toBe(1);
+        });
+
+        it('dragOverscanCount のデフォルト値が 3', () => {
+            expect(DEFAULT_PROPS.dragOverscanCount).toBe(3);
+        });
+
+        it('showDropIndicator のデフォルト値が true', () => {
+            expect(DEFAULT_PROPS.showDropIndicator).toBe(true);
+        });
+
+        it('autoScrollMaxSpeed のデフォルト値が 50', () => {
+            expect(DEFAULT_PROPS.autoScrollMaxSpeed).toBe(50);
+        });
+
+        it('autoScrollMinSpeed のデフォルト値が 2', () => {
+            expect(DEFAULT_PROPS.autoScrollMinSpeed).toBe(2);
+        });
+
+        it('autoScrollAcceleration のデフォルト値が 2.5', () => {
+            expect(DEFAULT_PROPS.autoScrollAcceleration).toBe(2.5);
+        });
+
+        it('autoScrollTargetDuration のデフォルト値が 0.5', () => {
+            expect(DEFAULT_PROPS.autoScrollTargetDuration).toBe(0.5);
+        });
+
+        it('全24個のデフォルト値が定義されている', () => {
             const propCount = Object.keys(DEFAULT_PROPS).length;
-            expect(propCount).toBe(16);
+            expect(propCount).toBe(24);
         });
     });
 

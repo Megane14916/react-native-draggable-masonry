@@ -1,48 +1,30 @@
+/**
+ * Simple Draggable Masonry - Type Definitions
+ * Compatible with the main library's props
+ */
+
 import type { StyleProp, ViewStyle } from 'react-native';
 
 // ============================================================================
 // Base Types
 // ============================================================================
 
-/**
- * Base item type that must have an id and height property.
- * Users can extend this with additional properties.
- */
 export interface MasonryItem {
     id: string;
     height: number;
     [key: string]: any;
 }
 
-/**
- * Positioned item with layout information
- */
-export interface PositionedItem {
-    id: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    column: number;
-}
-
-/**
- * Render item info passed to renderItem function
- */
 export interface RenderItemInfo<T extends MasonryItem> {
     item: T;
     index: number;
 }
 
-// ============================================================================
-// Animation Types
-// ============================================================================
+export type OverDragType = 'both' | 'horizontal' | 'vertical' | 'none';
 
 // Accept both custom animation functions and Reanimated built-in animations
 export type EntryAnimationType = any;
 export type ExitAnimationType = any;
-
-export type OverDragType = 'both' | 'horizontal' | 'vertical' | 'none';
 
 // ============================================================================
 // Callback Types
@@ -120,8 +102,30 @@ export interface DraggableMasonryListProps<T extends MasonryItem> {
     autoScrollEnabled?: boolean;
     /** Offset from edge to activate auto scroll. Defaults to 150 */
     autoScrollActivationOffset?: number | [number, number];
-    /** Speed of auto scroll. Defaults to 8 */
+    /** Speed of auto scroll (deprecated, use maxSpeed/minSpeed). Defaults to 8 */
     autoScrollSpeed?: number;
+    /** Maximum speed of auto scroll (absolute cap). Defaults to 50 */
+    autoScrollMaxSpeed?: number;
+    /** Minimum speed of auto scroll. Defaults to 2 */
+    autoScrollMinSpeed?: number;
+    /** Acceleration curve exponent (higher = faster acceleration). Defaults to 2.5 */
+    autoScrollAcceleration?: number;
+    /** Target duration to reach the content edge in seconds. Dynamic max speed = distance / duration. Defaults to 0.5 */
+    autoScrollTargetDuration?: number;
+
+    // ========== Virtualization ==========
+    /** Enable virtualization for large lists. Defaults to true */
+    virtualizationEnabled?: boolean;
+    /** Number of screen heights to render outside visible area. Defaults to 1 */
+    overscanCount?: number;
+    /** Number of screen heights to render during drag. Defaults to 3 */
+    dragOverscanCount?: number;
+
+    // ========== Drop Indicator ==========
+    /** Show drop indicator during drag. Defaults to true */
+    showDropIndicator?: boolean;
+    /** Custom style for the drop indicator */
+    dropIndicatorStyle?: StyleProp<ViewStyle>;
 
     // ========== Layout Animations ==========
     /** Animation when item enters */
@@ -140,6 +144,26 @@ export interface DraggableMasonryListProps<T extends MasonryItem> {
     // ========== Style ==========
     /** Style for the scroll view content container */
     contentContainerStyle?: StyleProp<ViewStyle>;
+}
+
+// ============================================================================
+// Internal Types
+// ============================================================================
+
+export interface ItemPosition {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    column: number;
+}
+
+// Alias for backward compatibility
+export type PositionedItem = ItemPosition;
+
+export interface ColumnLayout {
+    positions: Record<string, ItemPosition>;
+    totalHeight: number;
 }
 
 // ============================================================================
@@ -163,4 +187,12 @@ export const DEFAULT_PROPS = {
     autoScrollEnabled: true,
     autoScrollActivationOffset: 150,
     autoScrollSpeed: 8,
+    autoScrollMaxSpeed: 50,
+    autoScrollMinSpeed: 2,
+    autoScrollAcceleration: 2.5,
+    autoScrollTargetDuration: 0.5,
+    virtualizationEnabled: true,
+    overscanCount: 1,
+    dragOverscanCount: 3,
+    showDropIndicator: true,
 } as const;

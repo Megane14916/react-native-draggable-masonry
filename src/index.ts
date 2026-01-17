@@ -15,11 +15,3 @@ export type {
 
 // Default props
 export { DEFAULT_PROPS } from './types';
-
-// Utility functions (for advanced users)
-export {
-    calculateColumnLayout,
-    distributeToColumns,
-    reorderItems
-} from './masonry';
-

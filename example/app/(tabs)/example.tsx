@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { DragEndParams, DraggableMasonryList, DragStartParams, MasonryItem, OrderChangeParams } from 'react-native-draggable-masonry';
+import type { DragEndParams, DragStartParams, MasonryItem, OrderChangeParams } from 'react-native-draggable-masonry';
+import { DraggableMasonryList } from 'react-native-draggable-masonry';
 import { FadeIn, FadeOut, SlideInLeft, SlideOutRight, ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -67,6 +68,18 @@ export default function ExampleScreen() {
     const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
     const [autoScrollActivationOffset, setAutoScrollActivationOffset] = useState(150);
     const [autoScrollSpeed, setAutoScrollSpeed] = useState(8);
+    const [autoScrollMaxSpeed, setAutoScrollMaxSpeed] = useState(50);
+    const [autoScrollMinSpeed, setAutoScrollMinSpeed] = useState(2);
+    const [autoScrollAcceleration, setAutoScrollAcceleration] = useState(2.5);
+    const [autoScrollTargetDuration, setAutoScrollTargetDuration] = useState(0.5);
+
+    // Virtualization
+    const [virtualizationEnabled, setVirtualizationEnabled] = useState(true);
+    const [overscanCount, setOverscanCount] = useState(1);
+    const [dragOverscanCount, setDragOverscanCount] = useState(3);
+
+    // Drop Indicator
+    const [showDropIndicator, setShowDropIndicator] = useState(true);
 
     // Layout Animations
     const [enteringAnim, setEnteringAnim] = useState<keyof typeof ENTERING_ANIMATIONS>('ZoomIn');
@@ -90,13 +103,13 @@ export default function ExampleScreen() {
     }, []);
 
     const handleOrderChange = useCallback((params: OrderChangeParams) => {
-        addLog(`🟡 Order: ${params.fromIndex}→${params.toIndex}`);
+        // ログを出さない
     }, []);
 
     // Render item
     const renderItem = useCallback(({ item }: { item: MasonryItem }) => (
-        <View style={[styles.card, { backgroundColor: item.color, height: item.height }]}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
+        <View style={[styles.card, { backgroundColor: (item as any).color, height: item.height }]}>
+            <Text style={styles.cardTitle}>{(item as any).title}</Text>
             <Text style={styles.cardHeight}>{item.height}px</Text>
         </View>
     ), []);
@@ -204,10 +217,45 @@ export default function ExampleScreen() {
                         <ControlButton key={n} title={`${n}`} onPress={() => setAutoScrollActivationOffset(n)} active={autoScrollActivationOffset === n} />
                     ))}
                 </ControlRow>
-                <ControlRow label="speed">
-                    {[4, 8, 12, 16].map(n => (
-                        <ControlButton key={n} title={`${n}`} onPress={() => setAutoScrollSpeed(n)} active={autoScrollSpeed === n} />
+                <ControlRow label="maxSpeed">
+                    {[25, 50, 75, 100].map(n => (
+                        <ControlButton key={n} title={`${n}`} onPress={() => setAutoScrollMaxSpeed(n)} active={autoScrollMaxSpeed === n} />
                     ))}
+                </ControlRow>
+                <ControlRow label="minSpeed">
+                    {[0, 2, 5, 10].map(n => (
+                        <ControlButton key={n} title={`${n}`} onPress={() => setAutoScrollMinSpeed(n)} active={autoScrollMinSpeed === n} />
+                    ))}
+                </ControlRow>
+                <ControlRow label="accel">
+                    {[1.0, 1.5, 2.0, 2.5, 3.0].map(n => (
+                        <ControlButton key={n} title={`${n}`} onPress={() => setAutoScrollAcceleration(n)} active={autoScrollAcceleration === n} />
+                    ))}
+                </ControlRow>
+                <ControlRow label="duration">
+                    {[0.3, 0.5, 0.8, 1.0, 2.0].map(n => (
+                        <ControlButton key={n} title={`${n}s`} onPress={() => setAutoScrollTargetDuration(n)} active={autoScrollTargetDuration === n} />
+                    ))}
+                </ControlRow>
+
+                <Text style={styles.sectionTitle}>🚀 Virtualization</Text>
+                <ControlRow label="enabled">
+                    <Switch value={virtualizationEnabled} onValueChange={setVirtualizationEnabled} />
+                </ControlRow>
+                <ControlRow label="overscan">
+                    {[0, 1, 2, 3].map(n => (
+                        <ControlButton key={n} title={`${n}`} onPress={() => setOverscanCount(n)} active={overscanCount === n} />
+                    ))}
+                </ControlRow>
+                <ControlRow label="dragOverscan">
+                    {[1, 2, 3, 5].map(n => (
+                        <ControlButton key={n} title={`${n}`} onPress={() => setDragOverscanCount(n)} active={dragOverscanCount === n} />
+                    ))}
+                </ControlRow>
+
+                <Text style={styles.sectionTitle}>📍 Drop Indicator</Text>
+                <ControlRow label="show">
+                    <Switch value={showDropIndicator} onValueChange={setShowDropIndicator} />
                 </ControlRow>
 
                 <Text style={styles.sectionTitle}>✨ Animations</Text>
@@ -244,6 +292,15 @@ export default function ExampleScreen() {
                     autoScrollEnabled={autoScrollEnabled}
                     autoScrollActivationOffset={autoScrollActivationOffset}
                     autoScrollSpeed={autoScrollSpeed}
+                    autoScrollMaxSpeed={autoScrollMaxSpeed}
+                    autoScrollMinSpeed={autoScrollMinSpeed}
+                    autoScrollAcceleration={autoScrollAcceleration}
+                    autoScrollTargetDuration={autoScrollTargetDuration}
+                    virtualizationEnabled={virtualizationEnabled}
+                    overscanCount={overscanCount}
+                    dragOverscanCount={dragOverscanCount}
+                    showDropIndicator={showDropIndicator}
+                    dropIndicatorStyle={{ borderColor: '#e94560' }}
                     itemEntering={ENTERING_ANIMATIONS[enteringAnim]}
                     itemExiting={EXITING_ANIMATIONS[exitingAnim]}
                     onDragStart={handleDragStart}

@@ -1,6 +1,6 @@
 {
   "name": "react-native-draggable-masonry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A performant, customizable draggable masonry grid component for React Native with smooth animations",
   "main": "src/index.ts",
   "types": "src/index.ts",
