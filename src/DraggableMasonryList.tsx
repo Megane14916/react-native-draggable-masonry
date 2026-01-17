@@ -71,9 +71,8 @@ function calculateLayout<T extends MasonryItemType>(
  * 
  * アルゴリズム:
  * 1. ドラッグアイテムの中心がどのカラムにあるかを判定
- * 2. 各アイテムとの重なり（交差面積）を計算
- * 3. 最も重なりが大きいアイテムの前後に挿入
- * 4. 重なりがない場合は、Y座標に基づいて適切な位置を決定
+ * 2. 同じカラム内のアイテムとのみ入れ替えを行う
+ * 3. Y座標に基づいて挿入位置を決定
  */
 function findInsertIndex<T extends MasonryItemType>(
     dragX: number,
@@ -90,8 +89,6 @@ function findInsertIndex<T extends MasonryItemType>(
 ): number {
     const dragCenterX = dragX + dragWidth / 2;
     const dragCenterY = dragY + dragHeight / 2;
-    const dragBottom = dragY + dragHeight;
-    const dragRight = dragX + dragWidth;
 
     const filteredData = data.filter(item => keyExtractor(item) !== dragId);
 
@@ -106,145 +103,53 @@ function findInsertIndex<T extends MasonryItemType>(
     const dragColumn = Math.floor(dragCenterX / (columnWidth + columnGap));
     const clampedColumn = Math.max(0, Math.min(dragColumn, numColumns - 1));
 
-    // パフォーマンス最適化: 近傍のアイテムのみを検査（Y座標が±2画面高さ以内）
-    const NEARBY_THRESHOLD = 2000; // 約2画面分
-    const nearbyData = filteredData.filter((item, index) => {
-        const pos = positions[keyExtractor(item)];
-        if (!pos) return false;
-        // Y座標が近いアイテムのみ
-        return Math.abs(pos.y - dragCenterY) < NEARBY_THRESHOLD;
-    });
+    // 同じカラム内のアイテムのみを抽出（Y座標でソート）
+    const sameColumnItems: { item: T; originalIndex: number; pos: ItemPosition }[] = [];
 
-    // 各アイテムとの重なりを計算
-    interface OverlapInfo {
-        index: number;
-        originalIndex: number;
-        overlapArea: number;
-        item: T;
-        pos: ItemPosition;
-        distanceY: number;
-    }
-
-    const overlaps: OverlapInfo[] = [];
-
-    for (let i = 0; i < nearbyData.length; i++) {
-        const item = nearbyData[i];
-        const originalIndex = filteredData.indexOf(item);
-        const pos = positions[keyExtractor(item)];
-        if (!pos) continue;
-
-        // 重なり領域を計算
-        const overlapLeft = Math.max(dragX, pos.x);
-        const overlapRight = Math.min(dragRight, pos.x + pos.width);
-        const overlapTop = Math.max(dragY, pos.y);
-        const overlapBottom = Math.min(dragBottom, pos.y + pos.height);
-
-        const overlapWidth = Math.max(0, overlapRight - overlapLeft);
-        const overlapHeight = Math.max(0, overlapBottom - overlapTop);
-        const overlapArea = overlapWidth * overlapHeight;
-
-        // Y方向の距離（ソート用）
-        const itemCenterY = pos.y + pos.height / 2;
-        const distanceY = Math.abs(dragCenterY - itemCenterY);
-
-        overlaps.push({
-            index: i,
-            originalIndex,
-            overlapArea,
-            item,
-            pos,
-            distanceY,
-        });
-    }
-
-    // 重なりが大きいアイテムを優先してチェック
-    overlaps.sort((a, b) => b.overlapArea - a.overlapArea);
-
-    // 最も重なりが大きいアイテムを基準に判定
-    const primaryOverlap = overlaps.find(o => o.overlapArea > 0);
-
-    if (primaryOverlap) {
-        const pos = primaryOverlap.pos;
-        const itemCenterY = pos.y + pos.height / 2;
-        const itemCenterX = pos.x + pos.width / 2;
-
-        // ドラッグ中心がアイテムの中心より下なら、そのアイテムの後ろに挿入
-        // 中心より上なら、そのアイテムの前に挿入
-        // ただし、同じカラムにいる場合のみ厳密に判定
-        const isSameColumn = Math.abs(pos.x - dragX) < columnWidth * 0.5;
-
-        if (isSameColumn) {
-            // 同じカラム: Y座標で判定
-            if (dragCenterY > itemCenterY) {
-                return primaryOverlap.originalIndex + 1;
-            } else {
-                return primaryOverlap.originalIndex;
-            }
-        } else {
-            // 異なるカラム: 中心間の関係で判定
-            if (dragCenterY > itemCenterY + pos.height * 0.3) {
-                return primaryOverlap.originalIndex + 1;
-            } else if (dragCenterY < itemCenterY - pos.height * 0.3) {
-                return primaryOverlap.originalIndex;
-            } else {
-                // Y位置が近い場合はX位置で判定
-                if (dragCenterX > itemCenterX) {
-                    return primaryOverlap.originalIndex + 1;
-                } else {
-                    return primaryOverlap.originalIndex;
-                }
-            }
-        }
-    }
-
-    // 重なりがない場合: Y座標に基づいて位置を決定
-    // 同じカラムのアイテムを探し、その間に挿入
-    const sameColumnItems = overlaps.filter(o => {
-        const itemColumn = Math.floor(o.pos.x / (columnWidth + columnGap));
-        return itemColumn === clampedColumn;
-    }).sort((a, b) => a.pos.y - b.pos.y);
-
-    if (sameColumnItems.length > 0) {
-        // 同じカラム内でY位置に基づいて挿入位置を決定
-        for (const item of sameColumnItems) {
-            if (dragCenterY < item.pos.y + item.pos.height * 0.5) {
-                return item.originalIndex;
-            }
-        }
-        // 全てより下にいる場合は最後のアイテムの後
-        return sameColumnItems[sameColumnItems.length - 1].originalIndex + 1;
-    }
-
-    // フォールバック: Y座標に基づくシンプルな判定
-    let insertIndex = 0;
     for (let i = 0; i < filteredData.length; i++) {
         const item = filteredData[i];
         const pos = positions[keyExtractor(item)];
         if (!pos) continue;
 
-        const itemCenterY = pos.y + pos.height / 2;
-        if (dragCenterY > itemCenterY) {
-            insertIndex = i + 1;
+        const itemColumn = Math.floor(pos.x / (columnWidth + columnGap));
+        if (itemColumn === clampedColumn) {
+            sameColumnItems.push({ item, originalIndex: i, pos });
         }
     }
 
-    // ヒステリシス: 小さな動きでは変更しない（境界での振動防止）
-    if (currentInsertIndex >= 0 && Math.abs(insertIndex - currentInsertIndex) === 1) {
-        const boundaryItem = filteredData[Math.min(currentInsertIndex, insertIndex)];
-        if (boundaryItem) {
-            const boundaryPos = positions[keyExtractor(boundaryItem)];
-            if (boundaryPos) {
-                const threshold = boundaryPos.height * 0.2;
-                const boundaryCenterY = boundaryPos.y + boundaryPos.height / 2;
-                if (Math.abs(dragCenterY - boundaryCenterY) < threshold) {
-                    return currentInsertIndex;
-                }
+    // 同じカラムにアイテムがない場合
+    if (sameColumnItems.length === 0) {
+        // 全アイテムのY座標を見て、適切な位置に挿入
+        let insertIndex = 0;
+        for (let i = 0; i < filteredData.length; i++) {
+            const item = filteredData[i];
+            const pos = positions[keyExtractor(item)];
+            if (!pos) continue;
+
+            const itemCenterY = pos.y + pos.height / 2;
+            if (dragCenterY > itemCenterY) {
+                insertIndex = i + 1;
             }
         }
+        return insertIndex;
     }
 
-    return insertIndex;
+    // Y座標でソート
+    sameColumnItems.sort((a, b) => a.pos.y - b.pos.y);
+
+    // 同じカラム内でY位置に基づいて挿入位置を決定
+    for (const { originalIndex, pos } of sameColumnItems) {
+        const threshold = pos.y + pos.height * 1;
+        if (dragCenterY < threshold) {
+            return originalIndex;
+        }
+    }
+
+    // 全てより下にいる場合は最後のアイテムの後
+    const lastItem = sameColumnItems[sameColumnItems.length - 1];
+    return lastItem.originalIndex + 1;
 }
+
 
 /**
  * 可視範囲内のアイテムをフィルタリング
@@ -587,10 +492,14 @@ function DraggableMasonryList<T extends MasonryItemType>({
 
             // 最初のフレームで最大速度を計算・固定
             if (lockedMaxSpeed.value < 0) {
-                const maxScroll = Math.max(0, totalContentHeight.value - windowHeight + 100);
-                const distanceToEdge = maxScroll - currentScroll;
-                const dynamicMaxSpeed = (distanceToEdge / autoScrollTargetDuration) * FRAME_TIME;
-                lockedMaxSpeed.value = Math.min(dynamicMaxSpeed, autoScrollMaxSpeed);
+                // ScrollViewの最大スクロール位置を動的に計算
+                // totalContentHeightはcontentContainerStyleと同じ高さ
+                const maxScroll = totalContentHeight.value;
+                const distanceToEdge = Math.max(0, maxScroll - currentScroll);
+                const dynamicMaxSpeed = distanceToEdge > 0
+                    ? (distanceToEdge / autoScrollTargetDuration) * FRAME_TIME
+                    : autoScrollMinSpeed;
+                lockedMaxSpeed.value = Math.max(autoScrollMinSpeed, Math.min(dynamicMaxSpeed, autoScrollMaxSpeed));
             }
 
             const effectiveMaxSpeed = lockedMaxSpeed.value;
@@ -607,7 +516,8 @@ function DraggableMasonryList<T extends MasonryItemType>({
         }
 
         if (Math.abs(scrollDelta) > 0.5) {
-            const maxScroll = Math.max(0, totalContentHeight.value - windowHeight + 100);
+            // ScrollViewの最大スクロール位置（ScrollViewがこれ以上スクロールしないで制限してくれる）
+            const maxScroll = totalContentHeight.value;
             const nextScroll = Math.min(Math.max(0, currentScroll + scrollDelta), maxScroll);
             scrollTo(scrollViewRef, 0, nextScroll, false);
             // ドラッグ中は仮想化を停止しているので、runOnJSによる更新は不要
