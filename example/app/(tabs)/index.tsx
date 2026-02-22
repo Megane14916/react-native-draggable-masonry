@@ -41,6 +41,7 @@ export default function HomeScreen() {
         virtualizationEnabled={true}
         overscanCount={1}
         showDropIndicator={false}
+        autoScrollDragThreshold={30}
       />
     </SafeAreaView>
   );

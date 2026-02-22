@@ -72,6 +72,7 @@ export default function ExampleScreen() {
     const [autoScrollMinSpeed, setAutoScrollMinSpeed] = useState(2);
     const [autoScrollAcceleration, setAutoScrollAcceleration] = useState(2.5);
     const [autoScrollTargetDuration, setAutoScrollTargetDuration] = useState(0.5);
+    const [autoScrollDragThreshold, setAutoScrollDragThreshold] = useState(30);
 
     // Virtualization
     const [virtualizationEnabled, setVirtualizationEnabled] = useState(true);
@@ -237,6 +238,11 @@ export default function ExampleScreen() {
                         <ControlButton key={n} title={`${n}s`} onPress={() => setAutoScrollTargetDuration(n)} active={autoScrollTargetDuration === n} />
                     ))}
                 </ControlRow>
+                <ControlRow label="dragThres">
+                    {[0, 15, 30, 50].map(n => (
+                        <ControlButton key={n} title={`${n}`} onPress={() => setAutoScrollDragThreshold(n)} active={autoScrollDragThreshold === n} />
+                    ))}
+                </ControlRow>
 
                 <Text style={styles.sectionTitle}>🚀 Virtualization</Text>
                 <ControlRow label="enabled">
@@ -296,6 +302,7 @@ export default function ExampleScreen() {
                     autoScrollMinSpeed={autoScrollMinSpeed}
                     autoScrollAcceleration={autoScrollAcceleration}
                     autoScrollTargetDuration={autoScrollTargetDuration}
+                    autoScrollDragThreshold={autoScrollDragThreshold}
                     virtualizationEnabled={virtualizationEnabled}
                     overscanCount={overscanCount}
                     dragOverscanCount={dragOverscanCount}

@@ -112,6 +112,8 @@ export interface DraggableMasonryListProps<T extends MasonryItem> {
     autoScrollAcceleration?: number;
     /** Target duration to reach the content edge in seconds. Dynamic max speed = distance / duration. Defaults to 0.5 */
     autoScrollTargetDuration?: number;
+    /** Minimum drag distance (px) from start before auto scroll activates. Defaults to 0 */
+    autoScrollDragThreshold?: number;
 
     // ========== Virtualization ==========
     /** Enable virtualization for large lists. Defaults to true */
@@ -191,6 +193,7 @@ export const DEFAULT_PROPS = {
     autoScrollMinSpeed: 2,
     autoScrollAcceleration: 2.5,
     autoScrollTargetDuration: 0.5,
+    autoScrollDragThreshold: 30,
     virtualizationEnabled: true,
     overscanCount: 1,
     dragOverscanCount: 3,

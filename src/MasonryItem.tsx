@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector, type GestureType } from 'react-native-gesture-handler';
 import Animated, {
     cancelAnimation,
     Easing,
@@ -40,6 +40,7 @@ interface MasonryItemProps {
     isNewItem: boolean; // 新規追加アイテムかどうか
     itemEntering?: EntryAnimationType;
     itemExiting?: ExitAnimationType;
+    scrollGesture: GestureType;
 }
 
 const MasonryItemComponent = ({
@@ -70,6 +71,7 @@ const MasonryItemComponent = ({
     isNewItem,
     itemEntering,
     itemExiting,
+    scrollGesture,
 }: MasonryItemProps) => {
     const startX = useSharedValue(0);
     const startY = useSharedValue(0);
@@ -158,6 +160,7 @@ const MasonryItemComponent = ({
     const panGesture = Gesture.Pan()
         .enabled(sortEnabled)
         .activateAfterLongPress(dragActivationDelay)
+        .simultaneousWithExternalGesture(scrollGesture)
         .onStart((e) => {
             startX.value = targetX.value;
             startY.value = targetY.value;
