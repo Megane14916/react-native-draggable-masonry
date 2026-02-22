@@ -109,9 +109,13 @@ describe('types.ts - Props and Types', () => {
             expect(DEFAULT_PROPS.autoScrollTargetDuration).toBe(0.5);
         });
 
-        it('全24個のデフォルト値が定義されている', () => {
+        it('autoScrollDragThreshold のデフォルト値が 30', () => {
+            expect(DEFAULT_PROPS.autoScrollDragThreshold).toBe(30);
+        });
+
+        it('全25個のデフォルト値が定義されている', () => {
             const propCount = Object.keys(DEFAULT_PROPS).length;
-            expect(propCount).toBe(24);
+            expect(propCount).toBe(25);
         });
     });
 

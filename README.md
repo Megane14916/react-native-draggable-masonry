@@ -105,6 +105,7 @@ export default function App() {
 | `autoScrollMinSpeed` | `number` | `2` | Minimum scroll speed |
 | `autoScrollAcceleration` | `number` | `2.5` | Acceleration curve exponent |
 | `autoScrollTargetDuration` | `number` | `0.5` | Target duration to reach edge (seconds) |
+| `autoScrollDragThreshold` | `number` | `30` | Minimum drag distance into auto-scroll zone before scrolling starts (px) |
 
 ### Virtualization
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import type { SharedValue } from 'react-native-reanimated';
 import Animated, {
@@ -238,6 +239,7 @@ function DraggableMasonryList<T extends MasonryItemType>({
     autoScrollMinSpeed = DEFAULT_PROPS.autoScrollMinSpeed,
     autoScrollAcceleration = DEFAULT_PROPS.autoScrollAcceleration,
     autoScrollTargetDuration = DEFAULT_PROPS.autoScrollTargetDuration,
+    autoScrollDragThreshold = DEFAULT_PROPS.autoScrollDragThreshold,
     virtualizationEnabled = DEFAULT_PROPS.virtualizationEnabled,
     overscanCount = DEFAULT_PROPS.overscanCount,
     dragOverscanCount = DEFAULT_PROPS.dragOverscanCount,
@@ -420,6 +422,11 @@ function DraggableMasonryList<T extends MasonryItemType>({
     const dragY = useSharedValue(0);
     const dragStartScrollY = useSharedValue(0);
     const totalContentHeight = useSharedValue(0);
+    // オートスクロールゾーンに入った時の画面Y座標（-1 = ゾーン外）
+    const autoScrollZoneEntryY = useSharedValue(-1);
+
+    // ScrollViewのNativeViewGesture（PanGestureとの競合解消用）
+    const scrollGesture = useMemo(() => Gesture.Native().runOnJS(true), []);
 
     useEffect(() => {
         totalContentHeight.value = layout.totalHeight;
@@ -453,6 +460,7 @@ function DraggableMasonryList<T extends MasonryItemType>({
             // オートスクロール終了時にリセット
             lockedMaxSpeed.value = -1;
             autoScrollDirection.value = 0;
+            autoScrollZoneEntryY.value = -1;
             return;
         }
 
@@ -461,7 +469,20 @@ function DraggableMasonryList<T extends MasonryItemType>({
         let scrollDelta = 0;
 
         if (screenY < topThreshold && screenY > 0) {
-            // 上端へのスクロール
+            // 上端ゾーンに進入
+            // ゾーン進入位置を記録（初回のみ）
+            if (autoScrollZoneEntryY.value < 0) {
+                autoScrollZoneEntryY.value = screenY;
+            }
+
+            // 閾値チェック: ゾーン端方向（上方向）への侵入距離が閾値未満ならスキップ
+            if (autoScrollDragThreshold > 0) {
+                const penetration = autoScrollZoneEntryY.value - screenY;
+                if (penetration < autoScrollDragThreshold) {
+                    return;
+                }
+            }
+
             // 方向が変わったらリセット
             if (autoScrollDirection.value !== -1) {
                 lockedMaxSpeed.value = -1;
@@ -483,7 +504,20 @@ function DraggableMasonryList<T extends MasonryItemType>({
             scrollDelta = -speed;
         }
         else if (screenY > windowHeight - bottomThreshold) {
-            // 下端へのスクロール
+            // 下端ゾーンに進入
+            // ゾーン進入位置を記録（初回のみ）
+            if (autoScrollZoneEntryY.value < 0) {
+                autoScrollZoneEntryY.value = screenY;
+            }
+
+            // 閾値チェック: ゾーン端方向（下方向）への侵入距離が閾値未満ならスキップ
+            if (autoScrollDragThreshold > 0) {
+                const penetration = screenY - autoScrollZoneEntryY.value;
+                if (penetration < autoScrollDragThreshold) {
+                    return;
+                }
+            }
+
             // 方向が変わったらリセット
             if (autoScrollDirection.value !== 1) {
                 lockedMaxSpeed.value = -1;
@@ -513,6 +547,7 @@ function DraggableMasonryList<T extends MasonryItemType>({
             // オートスクロール領域を離れたらリセット
             lockedMaxSpeed.value = -1;
             autoScrollDirection.value = 0;
+            autoScrollZoneEntryY.value = -1;
         }
 
         if (Math.abs(scrollDelta) > 0.5) {
@@ -661,66 +696,71 @@ function DraggableMasonryList<T extends MasonryItemType>({
 
     return (
         <View onLayout={handleLayout} style={{ flex: 1 }}>
-            <Animated.ScrollView
-                ref={scrollViewRef}
-                onScroll={virtualizationEnabled ? onScrollHandler : undefined}
-                scrollEventThrottle={16}
-                contentContainerStyle={[{ height: layout.totalHeight + 100 }, contentContainerStyle]}
-            >
-                {/* ドロップインジケーター（アニメーション付き） */}
-                {showDropIndicator && (
-                    <DropIndicator
-                        x={dropIndicatorX}
-                        y={dropIndicatorY}
-                        width={dropIndicatorWidth}
-                        height={dropIndicatorHeight}
-                        opacity={dropIndicatorOpacity}
-                        style={dropIndicatorStyle}
-                    />
-                )}
+            <GestureDetector gesture={scrollGesture}>
+                <Animated.ScrollView
+                    ref={scrollViewRef}
+                    onScroll={virtualizationEnabled ? onScrollHandler : undefined}
+                    scrollEventThrottle={16}
+                    scrollEnabled={!activeDragId}
+                    bounces={!activeDragId}
+                    contentContainerStyle={[{ height: layout.totalHeight + 100 }, contentContainerStyle]}
+                >
+                    {/* ドロップインジケーター（アニメーション付き） */}
+                    {showDropIndicator && (
+                        <DropIndicator
+                            x={dropIndicatorX}
+                            y={dropIndicatorY}
+                            width={dropIndicatorWidth}
+                            height={dropIndicatorHeight}
+                            opacity={dropIndicatorOpacity}
+                            style={dropIndicatorStyle}
+                        />
+                    )}
 
-                {visibleItems.map((item) => {
-                    const pos = layout.positions[keyExtractor(item)];
-                    if (!pos) return null;
+                    {visibleItems.map((item) => {
+                        const pos = layout.positions[keyExtractor(item)];
+                        if (!pos) return null;
 
-                    const originalIndex = displayData.findIndex(d => keyExtractor(d) === keyExtractor(item));
-                    const isDragging = activeDragId === keyExtractor(item);
+                        const originalIndex = displayData.findIndex(d => keyExtractor(d) === keyExtractor(item));
+                        const isDragging = activeDragId === keyExtractor(item);
 
-                    return (
-                        <MasonryItem
-                            key={keyExtractor(item)}
-                            id={keyExtractor(item)}
-                            x={pos.x}
-                            y={pos.y}
-                            width={pos.width}
-                            height={pos.height}
-                            onDragStart={handleDragStart}
-                            onDragEnd={handleDragEnd}
-                            onDragChange={handleDragChange}
-                            isDragging={isDragging}
-                            scrollOffset={scrollOffset}
-                            dragY={dragY}
-                            dragStartScrollY={dragStartScrollY}
-                            sortEnabled={sortEnabled}
-                            dragActivationDelay={dragActivationDelay}
-                            activationAnimationDuration={activationAnimationDuration}
-                            dropAnimationDuration={dropAnimationDuration}
-                            overDrag={overDrag}
-                            containerWidth={containerWidth}
-                            containerHeight={layout.totalHeight}
-                            activeItemScale={isDragging ? activeItemScale : (activeDragId !== null ? inactiveItemScale : 1)}
-                            activeItemOpacity={isDragging ? activeItemOpacity : (activeDragId !== null ? inactiveItemOpacity : 1)}
-                            activeItemShadowOpacity={activeItemShadowOpacity}
-                            isAnyDragging={activeDragId !== null}
-                            isNewItem={newItemIds.current.has(keyExtractor(item))}
-                            itemEntering={newItemIds.current.has(keyExtractor(item)) ? itemEntering : undefined}
-                            itemExiting={itemExiting}
-                        >
-                            {renderItem({ item, index: originalIndex })}
-                        </MasonryItem>
-                    );
-                })}
-            </Animated.ScrollView>
+                        return (
+                            <MasonryItem
+                                key={keyExtractor(item)}
+                                id={keyExtractor(item)}
+                                x={pos.x}
+                                y={pos.y}
+                                width={pos.width}
+                                height={pos.height}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                                onDragChange={handleDragChange}
+                                isDragging={isDragging}
+                                scrollOffset={scrollOffset}
+                                dragY={dragY}
+                                dragStartScrollY={dragStartScrollY}
+                                sortEnabled={sortEnabled}
+                                dragActivationDelay={dragActivationDelay}
+                                activationAnimationDuration={activationAnimationDuration}
+                                dropAnimationDuration={dropAnimationDuration}
+                                overDrag={overDrag}
+                                containerWidth={containerWidth}
+                                containerHeight={layout.totalHeight}
+                                activeItemScale={isDragging ? activeItemScale : (activeDragId !== null ? inactiveItemScale : 1)}
+                                activeItemOpacity={isDragging ? activeItemOpacity : (activeDragId !== null ? inactiveItemOpacity : 1)}
+                                activeItemShadowOpacity={activeItemShadowOpacity}
+                                isAnyDragging={activeDragId !== null}
+                                isNewItem={newItemIds.current.has(keyExtractor(item))}
+                                itemEntering={newItemIds.current.has(keyExtractor(item)) ? itemEntering : undefined}
+                                itemExiting={itemExiting}
+                                scrollGesture={scrollGesture}
+                            >
+                                {renderItem({ item, index: originalIndex })}
+                            </MasonryItem>
+                        );
+                    })}
+                </Animated.ScrollView>
+            </GestureDetector>
         </View>
     );
 }
