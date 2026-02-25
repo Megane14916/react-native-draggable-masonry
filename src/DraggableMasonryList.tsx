@@ -250,6 +250,7 @@ function DraggableMasonryList<T extends MasonryItemType>({
     onDragStart,
     onDragEnd,
     onOrderChange,
+    onDragChange,
     contentContainerStyle,
 }: DraggableMasonryListProps<T>) {
     const [containerWidth, setContainerWidth] = useState(0);
@@ -692,6 +693,11 @@ function DraggableMasonryList<T extends MasonryItemType>({
             setTargetInsertIndex(newTargetIndex);
             // ドロップインジケータの位置更新はuseEffect内で行う（他のアイテムと同じタイミングで）
         }
+
+        if (onDragChange) {
+            onDragChange({ key: id, x, y, index: newTargetIndex });
+        }
+        
     }, [containerWidth, numColumns, rowGap, columnGap, keyExtractor, targetInsertIndex, sortEnabled]);
 
     return (

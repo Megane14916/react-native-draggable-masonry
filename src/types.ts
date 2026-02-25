@@ -48,9 +48,17 @@ export interface OrderChangeParams {
     toIndex: number;
 }
 
+export interface DragChangeParams {
+    key: string;
+    x: number;
+    y: number;
+    index: number;
+}
+
 export type DragStartCallback = (params: DragStartParams) => void;
 export type DragEndCallback<T extends MasonryItem> = (params: DragEndParams<T>) => void;
 export type OrderChangeCallback = (params: OrderChangeParams) => void;
+export type DragChangeCallback = (params: DragChangeParams) => void;
 
 // ============================================================================
 // Component Props
@@ -142,6 +150,8 @@ export interface DraggableMasonryListProps<T extends MasonryItem> {
     onDragEnd?: DragEndCallback<T>;
     /** Called when order changes during drag */
     onOrderChange?: OrderChangeCallback;
+    /** Called when drag changes */
+    onDragChange?: DragChangeCallback;
 
     // ========== Style ==========
     /** Style for the scroll view content container */
