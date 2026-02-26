@@ -74,6 +74,8 @@ export interface DraggableMasonryListProps<T extends MasonryItem> {
     keyExtractor?: (item: T) => string;
     /** Whether sorting/dragging is enabled. Defaults to true */
     sortEnabled?: boolean;
+    /** Whether swap mode is enabled. Defaults to false */
+    swapMode?: boolean;
 
     // ========== Layout ==========
     /** Number of columns. Defaults to 2 */
@@ -208,4 +210,5 @@ export const DEFAULT_PROPS = {
     overscanCount: 1,
     dragOverscanCount: 3,
     showDropIndicator: true,
+    swapMode: false,
 } as const;
