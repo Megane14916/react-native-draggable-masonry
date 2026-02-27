@@ -45,6 +45,7 @@ export default function ExampleScreen() {
     // ===== All Props =====
     // Base
     const [sortEnabled, setSortEnabled] = useState(true);
+    const [swapMode, setSwapMode] = useState(false);
 
     // Layout
     const [columns, setColumns] = useState(2);
@@ -139,6 +140,9 @@ export default function ExampleScreen() {
                 <Text style={styles.sectionTitle}>📦 Base</Text>
                 <ControlRow label="sortEnabled">
                     <Switch value={sortEnabled} onValueChange={setSortEnabled} />
+                </ControlRow>
+                <ControlRow label="swapMode">
+                    <Switch value={swapMode} onValueChange={setSwapMode} />
                 </ControlRow>
 
                 <Text style={styles.sectionTitle}>📐 Layout</Text>
@@ -283,6 +287,7 @@ export default function ExampleScreen() {
                     data={data}
                     renderItem={renderItem}
                     sortEnabled={sortEnabled}
+                    swapMode={swapMode}
                     columns={columns}
                     rowGap={rowGap}
                     columnGap={columnGap}

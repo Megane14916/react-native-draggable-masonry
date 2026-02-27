@@ -66,6 +66,7 @@ export default function App() {
 | `renderItem` | `(info) => ReactNode` | required | Render function |
 | `keyExtractor` | `(item) => string` | `item.id` | Key extraction function |
 | `sortEnabled` | `boolean` | `true` | Enable drag sorting |
+| `swapMode` | `boolean` | `false` | Enable swap mode instead of insert mode |
 
 ### Layout
 
@@ -136,6 +137,7 @@ export default function App() {
 | `onDragStart` | `(params) => void` | Called when drag starts |
 | `onDragEnd` | `(params) => void` | Called when drag ends |
 | `onOrderChange` | `(params) => void` | Called when order changes |
+| `onDragChange` | `(params) => void` | Called when drag changes (position or index) |
 
 ### Style
 
